@@ -5,11 +5,11 @@
         [compojure.core :only [defroutes GET POST PUT DELETE routes]]
         [ring.adapter.jetty :only [run-jetty]]
         [ring.middleware.keyword-params :only [wrap-keyword-params]]
-        karras.document
+        karras.entity
         karras.sugar
         karras.validations))
 
-(extend com.mongodb.ObjectId Write-JSON
+(extend org.bson.types.ObjectId Write-JSON
         {:write-json (fn [x out] (.print out (str "\"" x "\"")))})
 
 (defentity User
@@ -46,7 +46,7 @@
   (reduce (fn [result [k _]] (if (params (name k))
                                (assoc result k (params (name k)))
                                result))
-          {} (:fields (docspec type))))
+          {} (:fields (entity-spec type))))
 
 (defmacro json-respond [form]
   `(try
@@ -57,7 +57,7 @@
                                      :message (.getMessage e#)})})))
 
 (defn read-objectid [request]
-  (com.mongodb.ObjectId. (get (:params request) "id")))
+  (org.bson.types.ObjectId. (get (:params request) "id")))
 
 (defn list-resources 
   "GET /{collection-name}"
@@ -89,7 +89,7 @@
                           (where (eq :_id (read-objectid request))))))
 
 (defmacro defresource [type & options]
-  (let [name (:collection-name (docspec (resolve type)))
+  (let [name (:collection-name (entity-spec (resolve type)))
         nsym (symbol (str name "-routes"))]
     `(defroutes ~nsym
        (GET (str "/" ~name) req# (list-resources req# ~type))
