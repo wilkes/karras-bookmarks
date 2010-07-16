@@ -6,8 +6,7 @@
         [ring.adapter.jetty :only [run-jetty]]
         [ring.middleware.keyword-params :only [wrap-keyword-params]]
         karras.entity
-        karras.sugar
-        karras.validations))
+        karras.sugar))
 
 (extend org.bson.types.ObjectId Write-JSON
         {:write-json (fn [x out] (.print out (str "\"" x "\"")))})
@@ -26,9 +25,7 @@
    :public?
    :tags {:type :list :of String}]
   (index (asc :uri-hash))
-  (index (asc :tags))
-  make-validatable
-  (validates-pressence-of :uri))
+  (index (asc :tags)))
 
 (defn fetch-by-username [username]
   (fetch-one User (where (eq :name username))))
@@ -78,15 +75,15 @@
 (defn update-resource
   "PUT /{collection-name}/:id"
   [request type]
-  (json-respond (c/update (collection-for type)
-                          (where (eq :_id (read-objectid request)))
-                          (modify (set-fields (read-params-for type (:params request)))))))
+  (json-respond (update type
+                        (where (eq :_id (read-objectid request)))
+                        (modify (set-fields (read-params-for type (:params request)))))))
 
 (defn delete-resource
   "DELETE /{collection-name}/:id"
   [request type]
-  (json-respond (c/delete (collection-for type)
-                          (where (eq :_id (read-objectid request))))))
+  (json-respond (delete type
+                        (where (eq :_id (read-objectid request))))))
 
 (defmacro defresource [type & options]
   (let [name (:collection-name (entity-spec (resolve type)))
@@ -105,6 +102,7 @@
     (k/with-mongo-request bookmark-db
       (app request))))
 
+;; These generate routes named 'bookmarks-routes' and 'users-routes'
 (defresource Bookmark)
 (defresource User)
 
