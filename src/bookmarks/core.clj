@@ -7,8 +7,7 @@
         [ring.middleware.keyword-params :only [wrap-keyword-params]]
         [ring.middleware.params :only [wrap-params]]
         karras.entity
-        karras.sugar
-        clojure.pprint)
+        karras.sugar)
   (:import [org.bson.types ObjectId]))
 
 (extend ObjectId Write-JSON
