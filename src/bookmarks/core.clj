@@ -42,8 +42,8 @@
                             :include [:tags]))))
 
 (defn read-params-for [type params]
-  (reduce (fn [result [k _]] (if (params (name k))
-                               (assoc result k (params (name k)))
+  (reduce (fn [result [k _]] (if (params k)
+                               (assoc result k (params k))
                                result))
           {} (:fields (entity-spec type))))
 
@@ -55,13 +55,13 @@
        {:status 500 :body (json-str {:type (class e#)
                                      :message (.getMessage e#)})})))
 
-(defn list-resources 
+(defn list-resources
   "GET /{collection-name}"
   [type]
   (fn [request]
     (json-respond (fetch-all type))))
 
-(defn create-resource 
+(defn create-resource
   "POST /{collection-name}"
   [type]
   (fn [request]
@@ -108,8 +108,8 @@
 (def application
      (-> (app ["bookmarks" &] (resource-app Bookmark)
               ["users" &] (resource-app User))
-         wrap-params
          wrap-keyword-params
+         wrap-params
          wrap-mongo-request))
 
 (defn -main [& args]
